@@ -30,7 +30,7 @@ defmodule Mailchimp.List do
   end
 
   def members(%__MODULE__{links: %{"members" => %Link{href: href}}}) do
-    {:ok, response} = HTTPClient.get(href)
+    {:ok, response} = HTTPClient.get("#{href}?count=1000")
     case response do
       %Response{status_code: 200, body: body} ->
         {:ok, Enum.map(body.members, &Member.new(&1))}
