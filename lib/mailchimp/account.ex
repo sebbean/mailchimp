@@ -18,13 +18,15 @@ defmodule Mailchimp.Account do
   end
 
   def get do
-    {:ok, response} = HTTPClient.get("/")
-    case response do
-      %Response{status_code: 200, body: body} ->
+    case HTTPClient.get("/") do
+      {:ok, %Response{status_code: 200, body: body}} ->
         {:ok, __MODULE__.new(body)}
 
-      %Response{status_code: _, body: body} ->
+      {:ok, %Response{status_code: _, body: body}} ->
         {:error, body}
+
+      {:error, error} ->
+        {:error, error}
     end
   end
 
@@ -33,8 +35,8 @@ defmodule Mailchimp.Account do
     account
   end
 
-  def lists(%__MODULE__{links: %{"lists" => %Link{href: href}}}) do
-    {:ok, response} = HTTPClient.get(href)
+  def lists(%__MODULE__{links: %{"lists" => %Link{href: href}}}, query_params) do
+    {:ok, response} = HTTPClient.get(href, [], params: query_params)
     case response do
       %Response{status_code: 200, body: body} ->
         {:ok, Enum.map(body.lists, &List.new(&1))}
@@ -44,8 +46,8 @@ defmodule Mailchimp.Account do
     end
   end
 
-  def lists!(account) do
-    {:ok, lists} = lists(account)
+  def lists!(account, query_params \\ %{}) do
+    {:ok, lists} = lists(account, query_params)
     lists
   end
 end
